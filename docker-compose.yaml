@@ -7,5 +7,6 @@ services:
       - 3000:3000
     volumes:
      - myapp:/home/whatsapp/
+   restart: always
 volumes:
   myapp:
