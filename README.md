@@ -3,6 +3,16 @@ That's a Frankenstein application that tries to sends message to Whatsapp contac
 
 Note: At the first run, you **must** open a VNC connection with the host and perform the sign-in on Whatsapp Web. But only the first time or when the session got expired.
 
+# Tooling
+- TightVNC Server
+- NodeJS 14
+- SikuliXIDE 2.0.5
+- Firefox
+- Openbox
+- Xterm
+- Tint2
+- OpenJDK 17
+
 ## In Action
 ![Example](example-proxy-node-docker-whatz.gif)
 
