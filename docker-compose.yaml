@@ -1,12 +1,18 @@
 version: "3.9"
 services:
-  whatsapp:
-    build: .
+  nodevnc:
+    build:
+      context: .
+      args:
+        - vncpasswd=forabozo
+        - username=guest
+    environment:
+      - APP_USER=guest
     restart: always
     ports:
       - 5901:5901
       - 3000:3000
     volumes:
-     - myapp:/home/whatsapp/
+     - myapp:/home/guest/
 volumes:
   myapp:
