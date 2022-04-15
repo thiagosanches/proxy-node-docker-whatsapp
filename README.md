@@ -1,7 +1,7 @@
 # proxy-node-docker-whatzapp
-That's a Frankenstein application that tries to sends message to Whatsapp contacts through a node application that calls sikulixide behind the scenes.
+That's a Frankenstein application that tries to sends message to Whatsapp contacts through a node application that calls [sikulixide](http://sikulix.com/quickstart/) behind the scenes.
 
-Note: At the first run, you **must** open a VNC connection with the host and perform the sign-in on Whatsapp Web. But only the first time or when the session got expired.
+Note: At the first run, you **must** open a VNC connection with the docker container (5901 port) and perform the sign-in on Whatsapp Web. But only the first time or when the session got expired.
 
 # Tooling
 - TightVNC Server
@@ -13,10 +13,10 @@ Note: At the first run, you **must** open a VNC connection with the host and per
 - Tint2
 - OpenJDK 17
 
-## In Action
+## See in Action
 ![Example](example-proxy-node-docker-whatz.gif)
 
-## Request
+## Send messages
 ```bash
 curl localhost:3000/sendMessages -X POST \
 -H "Content-Type: application/json" \
