@@ -8,5 +8,7 @@ Note: At the first run, you **must** open a VNC connection with the host and per
 
 ## Request
 ```bash
-curl localhost:3000/sendMessages -X POST -H "Content-Type: application/json" --data "[{\"name\":\"BotNode\", \"body\":\"Hello World 1\"},{\"name\":\"BotNode\", \"body\":\"Hello World 2\"}]"
+curl localhost:3000/sendMessages -X POST \
+-H "Content-Type: application/json" \
+--data "[{\"name\":\"BotNode\", \"body\":\"Hello World 1\"},{\"name\":\"BotNode\", \"body\":\"Hello World 2\"}]"
 ```
