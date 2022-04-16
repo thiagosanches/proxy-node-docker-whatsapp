@@ -23,6 +23,6 @@ curl localhost:3000/sendMessages -X POST \
 --data "[{\"name\":\"BotNode\", \"body\":\"Hello World 1\"},{\"name\":\"BotNode\", \"body\":\"Hello World 2\"}]"
 ```
 
-## Tips
+## Adjustments
 You might want to configure Firefox to do not present the restore session after the container restarts.
 On Firefox type: `about:config` and search for: `browser.sessionstore.resume_session_once` and `browser.sessionstore.resume_from_crash`, mark them as `false`.
