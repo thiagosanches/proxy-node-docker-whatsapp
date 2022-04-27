@@ -2,6 +2,5 @@
 xrdb $HOME/.Xresources
 xsetroot -solid green
 export XKL_XMODMAP_DISABLE=1
-firefox "https://web.whatsapp.com" &
 tint2 &
 /etc/X11/Xsession
