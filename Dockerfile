@@ -38,6 +38,7 @@ WORKDIR /home/${username}
 RUN mkdir -p /home/$username/app
 COPY package*.json /home/$username/app/
 COPY main.js /home/$username/app/
+COPY resources/sikulixide.template.py /home/$username/app/sikulixide.template.py
 
 WORKDIR /home/$username/app/
 RUN bash -i -c 'npm i'
