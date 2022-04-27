@@ -1,67 +1,65 @@
-const express = require('express')
+const express = require('express');
+const { chromium } = require('playwright');
 const bodyParser = require('body-parser')
-const fs = require('fs');
-const uuid = require('uuid');
+const fetch = require('node-fetch');
 
-const { exec } = require('child_process');
-const username = process.env.APP_USER ? process.env.APP_USER : process.exit(-1);
-
-const app = express()
+const app = express();
 app.use(bodyParser.json())
 
-app.post('/sendMessage', function (req, res) {
-  const { name, body } = req.body;
+let browser, page, jsonPhrases, motivationalMessage;
 
-  const fileTemplate = fs.readFileSync(`/home/${username}/app/sikulixide.template.py`, 'utf8')
-  const fileContent = fileTemplate.replace("@NAME", name).replace("@BODY", body);
-  const fileName = `${uuid.v4()}.sikulix.py`;
-  fs.writeFileSync(fileName, fileContent, { encoding: "utf8" });
+async function sendWhatsappMessage(name, body) {
+    await page.type('div[title="Search input textbox"]', name);
+    await page.waitForTimeout(1000);
+    await page.locator(`div[class="HONz8"]`).click();
+    await page.waitForTimeout(1000);
+    await page.type('div[title="Type a message"]', body);
+    await page.waitForTimeout(1000);
+    await page.locator('button[class="_4sWnG"]').click();
+    await page.waitForTimeout(1000);
+}
 
-  console.log(fileName);
-  console.log(fileContent);
+app.get('/login', async function (req, res) {
+    browser = await chromium.launch({
+        headless: false
+    });
+    const context = await browser.newContext();
+    page = await context.newPage();
+    await page.goto('https://web.whatsapp.com/');
+    res.end('Browser started read the qr-code!');
+});
 
-  exec(`java -jar /home/${username}/sikulixide-2.0.5.jar -r ${fileName}`, (error, stdout, stderr) => {
-    if (error) {
-      console.log(error)
+app.post('/sendMessage', async function (req, res) {
+    const { name, body } = req.body;
+    sendWhatsappMessage(name, body);
+    res.end('Message has been sent!');
+});
+
+app.post('/sendMessages', async function (req, res) {
+    for (let i = 0; i < req.body.length; i++) {
+        await sendWhatsappMessage(req.body[i].name, req.body[i].body);
+    }
+    res.end('Message has been sent!');
+});
+
+app.post('/sendMotivationalMessage', async function (req, res) {
+    const contacts = req.body.contacts;
+    if (!jsonPhrases) {
+        jsonPhrases = await fetch('https://raw.githubusercontent.com/moraislucas/MeMotive/master/phrases.json');
+        motivationalMessage = JSON.parse(await jsonPhrases.text());
     }
 
-    if (stderr) {
-      console.log(stderr)
+    const randomNumber = Math.floor(Math.random() * motivationalMessage.length);
+    const author = motivationalMessage[randomNumber].author;
+    const message = motivationalMessage[randomNumber].quote;
+    const formattedMessage = `_${message}_ (*${author}*)`;
+    console.log(formattedMessage);
+
+    for (let i = 0; i < contacts.length; i++) {
+        await sendWhatsappMessage(contacts[i], formattedMessage);
     }
 
-    console.log(stdout)
-  })
-  res.send('OK');
-})
+    res.end('Message has been sent!');
+});
 
-app.post('/sendMessages', function (req, res) {
-
-  const fileTemplate = fs.readFileSync(`/home/${username}/app/sikulixide.template.py`, 'utf8')
-  const fileName = `${uuid.v4()}.sikulix.py`;
-
-  let fileContent = "";
-  const data = req.body;
-  for (var i = 0; i < data.length; i++) {
-    fileContent += fileTemplate.replace("@NAME", data[i].name).replace("@BODY", data[i].body) + "\n";
-  }
-
-  fs.writeFileSync(fileName, fileContent, { encoding: "utf8" });
-
-  console.log(fileName);
-  console.log(fileContent);
-
-  exec(`java -jar /home/${username}/sikulixide-2.0.5.jar -r /home/${username}/app/${fileName}`, (error, stdout, stderr) => {
-    if (error) {
-      console.log(error)
-    }
-
-    if (stderr) {
-      console.log(stderr)
-    }
-
-    console.log(stdout)
-  })
-  res.send('OK');
-})
-
-app.listen(3000)
+app.listen(3000);
