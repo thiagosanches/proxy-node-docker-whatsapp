@@ -11,8 +11,7 @@ Note: At the first run, you **must** open a VNC connection with the docker conta
 - Openbox
 - Xterm
 - Tint2
-- OpenJDK 17
-
+- 
 ## See in Action
 ![Example](example-proxy-node-docker-whatz.gif)
 
