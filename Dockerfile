@@ -6,7 +6,7 @@ ARG username
 
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install -y openbox tightvncserver firefox xterm openjdk-17-jre curl wget tint2 libnss3 libnspr4 libgbm1
+    && apt-get install -y openbox tightvncserver firefox xterm curl wget tint2 libnss3 libnspr4 libgbm1
 
 RUN useradd -ms /bin/bash $username
 USER ${username}
