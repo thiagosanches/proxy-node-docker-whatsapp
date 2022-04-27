@@ -16,9 +16,6 @@ WORKDIR /home/${username}
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 RUN bash -i -c 'nvm install 14 && node -v'
 
-# Install sikulixide
-RUN wget https://launchpad.net/sikuli/sikulix/2.0.5/+download/sikulixide-2.0.5.jar
-
 USER root
 COPY resources/entrypoint.sh /opt/entrypoint.sh
 RUN chmod +x /opt/entrypoint.sh
