@@ -15,6 +15,12 @@ Note: At the first run, you **must** open a VNC connection with the docker conta
 ## See in Action
 ![Example](example-proxy-node-docker-whatz.gif)
 
+## How to login?
+```bash
+curl localhost:3000/login
+```
+And scan the qr-code!
+
 ## Send messages
 ```bash
 curl localhost:3000/sendMessages -X POST \
