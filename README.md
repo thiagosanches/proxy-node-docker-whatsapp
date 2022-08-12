@@ -7,7 +7,6 @@ Note: At the first run, you **must** open a VNC connection with the docker conta
 - TightVNC Server
 - NodeJS 14
 - Playwright
-- Firefox
 - Openbox
 - Xterm
 - Tint2
