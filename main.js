@@ -15,7 +15,7 @@ async function sendWhatsappMessage(name, body) {
     await page.waitForTimeout(1000);
     await page.type('div[title="Type a message"]', body);
     await page.waitForTimeout(1000);
-    await page.locator('button[class="_4sWnG"]').click();
+    await page.locator('button[data-testid="compose-btn-send"]').click();
     await page.waitForTimeout(1000);
 }
 
