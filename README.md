@@ -14,6 +14,14 @@ Note: At the first run, you **must** open a VNC connection with the docker conta
 ## See in Action
 ![Example](example-proxy-node-docker-whatz.gif)
 
+## How to run it?
+
+```bash
+git clone https://github.com/thiagosanches/proxy-node-docker-whatzapp.git
+cd proxy-node-docker-whatzapp
+docker-compose up -d
+```
+
 ## How to login?
 ```bash
 curl localhost:3000/login
