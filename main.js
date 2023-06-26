@@ -11,7 +11,7 @@ let browser, page, jsonPhrases, motivationalMessage;
 async function sendWhatsappMessage(name, body) {
     await page.type('div[title="Search input textbox"]', name);
     await page.waitForTimeout(1000);
-    await page.locator(`div[class="HONz8"]`).click();
+    await page.locator('._13jwn').click();
     await page.waitForTimeout(1000);
     await page.type('div[title="Type a message"]', body);
     await page.waitForTimeout(1000);
