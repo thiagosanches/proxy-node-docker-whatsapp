@@ -1,0 +1,4 @@
+{
+    "openaiKey": "YOUR_OPEN_API_KEY_GOES_HERE",
+    "prompt": "Your prompt here that describes that you are going to impersionate someone. \"##TEXT##\""
+}
