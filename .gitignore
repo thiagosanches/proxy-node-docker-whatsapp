@@ -1,2 +1,3 @@
 node_modules/
 *.sikulix.py
+config.json
