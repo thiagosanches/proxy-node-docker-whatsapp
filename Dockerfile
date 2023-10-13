@@ -36,6 +36,7 @@ WORKDIR /home/${username}
 
 # Application
 RUN mkdir -p /home/$username/app
+COPY config.json /home/$username/app/
 COPY package*.json /home/$username/app/
 COPY main.js /home/$username/app/
 
