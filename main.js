@@ -4,37 +4,21 @@ const { chromium } = require('playwright');
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
 const { Configuration, OpenAIApi } = require("openai");
+const cron = require('node-cron');
 const configuration = new Configuration({ apiKey: config.openaiKey });
 const openai = new OpenAIApi(configuration);
 const MAX_TOKENS = 256;
 
 const app = express();
 app.use(bodyParser.json())
-
 let browser, page, jsonPhrases, motivationalMessage;
 
-async function sendWhatsappMessage(name, body) {
-    await page.type('div[title="Search input textbox"]', name);
-    await page.waitForTimeout(1000);
-    await page.locator('._13jwn').click();
-    await page.waitForTimeout(1000);
-    await page.type('div[title="Type a message"]', body);
-    await page.waitForTimeout(1000);
-    await page.locator('[aria-label="Send"]>>nth=0').click();
-    await page.waitForTimeout(1000);
-}
+cron.schedule('30 * * * * *', async () => {
+    console.log("It's time to check for unread messages!")
+    await autoReplyUnreadMessages();
+})
 
-app.get('/login', async function (req, res) {
-    browser = await chromium.launch({
-        headless: false
-    });
-    const context = await browser.newContext();
-    page = await context.newPage();
-    await page.goto('https://web.whatsapp.com/');
-    res.end('Browser started read the qr-code!');
-});
-
-app.get('/autoReplyUnreadMessages', async function (req, res) {
+async function autoReplyUnreadMessages() {
     const data = [];
 
     try {
@@ -92,7 +76,28 @@ app.get('/autoReplyUnreadMessages', async function (req, res) {
         console.log(e)
     }
 
-    res.json(data);
+    return data;
+};
+
+async function sendWhatsappMessage(name, body) {
+    await page.type('div[title="Search input textbox"]', name);
+    await page.waitForTimeout(1000);
+    await page.locator('._13jwn').click();
+    await page.waitForTimeout(1000);
+    await page.type('div[title="Type a message"]', body);
+    await page.waitForTimeout(1000);
+    await page.locator('[aria-label="Send"]>>nth=0').click();
+    await page.waitForTimeout(1000);
+}
+
+app.get('/login', async function (req, res) {
+    browser = await chromium.launch({
+        headless: false
+    });
+    const context = await browser.newContext();
+    page = await context.newPage();
+    await page.goto('https://web.whatsapp.com/');
+    res.end('Browser started read the qr-code!');
 });
 
 app.post('/sendMessage', async function (req, res) {
