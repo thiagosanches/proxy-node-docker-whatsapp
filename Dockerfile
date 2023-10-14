@@ -36,9 +36,10 @@ WORKDIR /home/${username}
 
 # Application
 RUN mkdir -p /home/$username/app
-COPY config.json /home/$username/app/
-COPY package*.json /home/$username/app/
-COPY main.js /home/$username/app/
+COPY --chown=guest:guest config.json /home/$username/app/
+COPY --chown=guest:guest package*.json /home/$username/app/
+COPY --chown=guest:guest main.js /home/$username/app/
+RUN ls -la /home/$username/app/*
 
 WORKDIR /home/$username/app/
 RUN bash -i -c 'npm i'
