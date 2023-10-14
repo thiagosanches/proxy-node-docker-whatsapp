@@ -14,8 +14,10 @@ app.use(bodyParser.json())
 let browser, page, jsonPhrases, motivationalMessage;
 
 cron.schedule('30 * * * * *', async () => {
-    console.log("It's time to check for unread messages!")
-    await autoReplyUnreadMessages();
+    if (page) {
+        console.log("It's time to check for unread messages!")
+        await autoReplyUnreadMessages();
+    }
 })
 
 async function autoReplyUnreadMessages() {
@@ -50,6 +52,8 @@ async function autoReplyUnreadMessages() {
             contactName: contactName,
             messages: elements.flat(Infinity)
         });
+
+        console.log('[chat received]', data);
 
         // clear a little bit the content prior to forward to ChatGPT.
         const chatTextFlattened = elements.flat(Infinity).join(" ");
