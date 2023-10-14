@@ -14,7 +14,7 @@ WORKDIR /home/${username}
 
 # Install NVM
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-RUN bash -i -c 'nvm install 14 && node -v'
+RUN bash -i -c 'nvm install 18 && node -v'
 
 USER root
 COPY resources/entrypoint.sh /opt/entrypoint.sh
