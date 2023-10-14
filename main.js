@@ -38,60 +38,56 @@ app.get('/autoReplyUnreadMessages', async function (req, res) {
     const data = [];
 
     try {
-        // Clicks on the first 'Unread' that it finds, because it will refresh the page and try again to get others.
-        let hasUnread = await page.locator('[aria-label="Unread"]>>nth=0').count();
-        while (hasUnread) {
-            await page.locator('[aria-label="Unread"]>>nth=0').click();
-            await page.waitForTimeout(250);
+        await page.locator('[aria-label="Unread"]>>nth=0', { timeout: 250 }).click();
+        await page.waitForTimeout(250);
 
-            const mainDiv = await page.evaluate(async () => document.getElementById("main").innerText);
-            // The first thing is the contact name, I know that's ugly, but it's a pain inspect everything.
-            const contactName = mainDiv.split('\n')[0].trim();
+        const mainDiv = await page.evaluate(async () => document.getElementById("main").innerText);
+        // The first thing is the contact name, I know that's ugly, but it's a pain inspect everything.
+        const contactName = mainDiv.split('\n')[0].trim();
 
-            const elements = await page.evaluate(async () => {
-                const nodeList = document.querySelectorAll('[aria-live="polite"]'); // that message that says 'X UNREAD MESSAGE'
-                const elementArray = Array.from(nodeList);
-                const messages = [];
-                return elementArray.map(element => {
-                    let parentNodeUnreadMessage = element.parentNode;
-                    if (parentNodeUnreadMessage) {
-                        while (parentNodeUnreadMessage &&
-                            parentNodeUnreadMessage.nextElementSibling) {
-                            messages.push(parentNodeUnreadMessage.nextElementSibling.innerText);
-                            parentNodeUnreadMessage = parentNodeUnreadMessage.nextElementSibling;
-                        }
+        const elements = await page.evaluate(async () => {
+            const nodeList = document.querySelectorAll('[aria-live="polite"]'); // that message that says 'X UNREAD MESSAGE'
+            const elementArray = Array.from(nodeList);
+            const messages = [];
+            return elementArray.map(element => {
+                let parentNodeUnreadMessage = element.parentNode;
+                if (parentNodeUnreadMessage) {
+                    while (parentNodeUnreadMessage &&
+                        parentNodeUnreadMessage.nextElementSibling) {
+                        messages.push(parentNodeUnreadMessage.nextElementSibling.innerText);
+                        parentNodeUnreadMessage = parentNodeUnreadMessage.nextElementSibling;
                     }
-                    return messages
-                });
+                }
+                return messages
             });
+        });
 
-            data.push({
-                contactName: contactName,
-                messages: elements.flat(Infinity)
-            });
+        data.push({
+            contactName: contactName,
+            messages: elements.flat(Infinity)
+        });
 
-            // clear a little bit the content prior to forward to ChatGPT.
-            const chatTextFlattened = elements.flat(Infinity).join(" ");
+        // clear a little bit the content prior to forward to ChatGPT.
+        const chatTextFlattened = elements.flat(Infinity).join(" ");
 
-            // Use ChatGPT here!
-            possibleAnswers = await openai.createCompletion({
-                model: "text-davinci-003",
-                max_tokens: MAX_TOKENS,
-                temperature: 0.2,
-                prompt: config.prompt.replaceAll("##TEXT##", chatTextFlattened)
-            });
+        // Use ChatGPT here!
+        possibleAnswers = await openai.createCompletion({
+            model: "text-davinci-003",
+            max_tokens: MAX_TOKENS,
+            temperature: 0.2,
+            prompt: config.prompt.replaceAll("##TEXT##", chatTextFlattened)
+        });
 
-            console.log(possibleAnswers.data.choices[0].text.replaceAll('\\n', '').trim());
+        console.log('[chatGPT response]', possibleAnswers.data.choices[0].text.replaceAll('\\n', '').trim());
 
-            await page.type('div[title="Type a message"]', possibleAnswers.data.choices[0].text.replaceAll('\\n', '').trim());
-            await page.waitForTimeout(1000);
-            await page.locator('[aria-label="Send"]>>nth=0').click();
-            await page.waitForTimeout(1000);
+        await page.type('div[title="Type a message"]', possibleAnswers.data.choices[0].text.replaceAll('\\n', '').trim());
+        await page.waitForTimeout(1000);
+        await page.locator('[aria-label="Send"]>>nth=0').click();
+        await page.waitForTimeout(1000);
 
-            await page.reload();
-            await page.waitForTimeout(1000);
-            hasUnread = await page.locator('[aria-label="Unread"]>>nth=0', { timeout: 500 }).count();
-        }
+        await page.reload();
+        await page.waitForTimeout(1000);
+
     } catch (e) {
         console.log(e)
     }
