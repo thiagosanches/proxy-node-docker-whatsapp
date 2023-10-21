@@ -52,8 +52,8 @@ However, if you don't want to use redis, you can replace the logic on the [`redi
 | Key  | Description   |
 |---|---|
 |whatsapp/openai-bot-key|The OpenAPI Key.|
-|whatsapp/openai-bot-chat-prompt|In the prompt where you instruct ChatGPT to mimic you, you can be as descriptive as you like. Please ensure you leave the placeholder (##TEXT##) intact. This allows the application to inject the message it receives from WhatsApp Web, providing context.|
-|whatsapp/openai-bot-dalle-prompt|This will serve as the prompt used by DALL·E to generate images. Feel free to be as descriptive as you like. For added variation, you can include the ##TEXT## placeholder at the end of the phrase. This helps DALL·E generate photos based on the described activities.|
+|whatsapp/openai-bot-chat-prompt|In the prompt where you instruct ChatGPT to mimic you, you can be as descriptive as you like. Please ensure you leave the placeholder (`##TEXT##)` intact. This allows the application to inject the message it receives from WhatsApp Web, providing context.|
+|whatsapp/openai-bot-dalle-prompt|This will serve as the prompt used by DALL·E to generate images. Feel free to be as descriptive as you like. For added variation, you can include the `##TEXT##` placeholder at the end of the phrase. This helps DALL·E generate photos based on the described activities.|
 |whatsapp/openai-bot-temperature|ChatGPT temperature.|
 |whatsapp/openai-bot-activities|This is utilized in the DALL·E prompt to introduce variety in image generation. It should consist of an array containing different values such as 'diving,' 'skiing,' 'running,' or any other activities you prefer.|
 |whatsapp/openai-bot-turned-on|Sometimes you may want to disable your bot. You can do so by setting this parameter to 'true' or 'false'.|
