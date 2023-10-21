@@ -8,6 +8,7 @@ services:
         - username=guest
     environment:
       - APP_USER=guest
+      - REDIS_URL=redis://192.168.0.7:6379
     restart: always
     ports:
       - 5901:5901
