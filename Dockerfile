@@ -36,9 +36,9 @@ WORKDIR /home/${username}
 
 # Application
 RUN mkdir -p /home/$username/app
-COPY --chown=guest:guest config.json /home/$username/app/
 COPY --chown=guest:guest package*.json /home/$username/app/
 COPY --chown=guest:guest main.js /home/$username/app/
+COPY --chown=guest:guest redis.js /home/$username/app/
 RUN ls -la /home/$username/app/*
 
 WORKDIR /home/$username/app/
