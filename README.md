@@ -14,9 +14,6 @@ Important Note: During the initial setup, it's imperative to establish a VNC con
 - Tint2
 - Redis
 
-## See in Action
-![Example](example-proxy-node-docker-whatz.gif)
-
 ## How to run it?
 
 ```bash
