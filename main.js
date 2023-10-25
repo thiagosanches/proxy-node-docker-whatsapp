@@ -10,7 +10,7 @@ let blockedBySendingPicture = false;
 let totalPhotosTakenByDay = 0;
 let browser, page;
 
-const userDataPathToStoreWhatsappSession = "/tmp/whatsapp_userdata"
+const userDataPathToStoreWhatsappSession = "/tmp/whatsapp_userdata";
 const app = express();
 app.use(bodyParser.json());
 
