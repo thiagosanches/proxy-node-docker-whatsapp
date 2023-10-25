@@ -10,7 +10,7 @@ let blockedBySendingPicture = false;
 let totalPhotosTakenByDay = 0;
 let browser, page;
 
-const userDataPath = process.env.USERDATA_PATH;
+const userDataPathToStoreWhatsappSession = "/tmp/whatsapp_userdata"
 const app = express();
 app.use(bodyParser.json());
 
@@ -145,7 +145,8 @@ async function autoReplyUnreadMessages() {
 app.get('/login', async function (req, res) {
     config = await redis.load();
 
-    browser = await chromium.launchPersistentContext(userDataPath, { headless: false });
+    browser = await chromium.launchPersistentContext(userDataPathToStoreWhatsappSession,
+        { headless: false });
     page = await browser.newPage();
     await page.goto('https://web.whatsapp.com/');
 

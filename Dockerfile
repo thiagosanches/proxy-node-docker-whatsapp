@@ -44,6 +44,10 @@ RUN ls -la /home/$username/app/*
 WORKDIR /home/$username/app/
 RUN bash -i -c 'npm i'
 
+RUN mkdir -p /tmp/whatsapp_userdata
+RUN chown guest:guest -R /tmp/whatsapp_userdata
+VOLUME [ "/tmp/whatsapp_userdata" ]
+
 EXPOSE 3000 5901
 
 ENTRYPOINT [ "/opt/entrypoint.sh" ]
