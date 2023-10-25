@@ -103,8 +103,7 @@ async function autoReplyUnreadMessages() {
                     });
 
                     const photoUrl = photoResponse.data.data[0].url;
-                    const context2 = await browser.newContext({ permissions: ["clipboard-read", "clipboard-write"] });
-                    const page2 = await context2.newPage();
+                    const page2 = await browser.newPage();
                     await page2.goto(photoUrl);
                     await page2.keyboard.press("Control+C");
                     await page.bringToFront();
@@ -146,7 +145,7 @@ app.get('/login', async function (req, res) {
     config = await redis.load();
 
     browser = await chromium.launchPersistentContext(userDataPathToStoreWhatsappSession,
-        { headless: false });
+        { headless: false, permissions: ["clipboard-read", "clipboard-write"] });
     page = await browser.newPage();
     await page.goto('https://web.whatsapp.com/');
 
