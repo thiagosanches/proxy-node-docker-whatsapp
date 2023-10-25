@@ -65,4 +65,4 @@ However, if you don't want to use redis, you can replace the logic on the [`redi
 ## Next Steps
 
 - To achieve greater control when replying to messages, tracking message senders, and more, it's advisable to leverage a robust project that serves as a wrapper for WhatsApp, providing an experience close to an official API. A strong contender for this purpose is the following project: [WhatsApp Web.js](https://github.com/pedroslopez/whatsapp-web.js).
-- If we're not using the project mentioned above, an alternative approach is to save the browser session and storage to disk. This way, we can avoid the need to log in to WhatsApp Web every time the container is recreated.
+- [DONE] If we're not using the project mentioned above, an alternative approach is to save the browser session and storage to disk. This way, we can avoid the need to log in to WhatsApp Web every time the container is restarted.
