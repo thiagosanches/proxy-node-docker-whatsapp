@@ -9,7 +9,13 @@ services:
     environment:
       - APP_USER=guest
       - REDIS_URL=redis://192.168.0.7:6379
+      - USERDATA_PATH=/tmp/whatsapp_userdata
     restart: always
     ports:
       - 5901:5901
       - 3000:3000
+    volumes:
+      # keep the same as USERDATA_PATH env variable.
+      - userdata:/tmp/whatsapp_userdata
+volumes:
+  userdata:

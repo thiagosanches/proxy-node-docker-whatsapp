@@ -10,6 +10,7 @@ let blockedBySendingPicture = false;
 let totalPhotosTakenByDay = 0;
 let browser, page;
 
+const userDataPath = process.env.USERDATA_PATH;
 const app = express();
 app.use(bodyParser.json());
 
@@ -143,9 +144,9 @@ async function autoReplyUnreadMessages() {
 
 app.get('/login', async function (req, res) {
     config = await redis.load();
-    browser = await chromium.launch({ headless: false });
-    const context = await browser.newContext();
-    page = await context.newPage();
+
+    browser = await chromium.launchPersistentContext(userDataPath, { headless: false });
+    page = await browser.newPage();
     await page.goto('https://web.whatsapp.com/');
 
     res.end('Browser started read the qr-code!');
