@@ -26,6 +26,11 @@ cron.schedule('*/5 * * * *', async () => {
     config = await redis.load();
 });
 
+cron.schedule('0 0 0 * * *', async () => {
+    console.log("[node-cron]", "It's time to set to 0 the photos taken by day!");
+    totalPhotosTakenByDay = 0;
+});
+
 async function autoReplyUnreadMessages() {
     const data = [];
 
