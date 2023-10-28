@@ -126,9 +126,13 @@ async function autoReplyUnreadMessages() {
             }
 
             // Sometimes GPT respond back with only the command defined as a 'placeholder' for photos like: 'photo:true',
-            // and I don't want it to answer with that value!
+            // and I don't want it to answer with that value! 
+            // I noticed that even with a normal phrase, it puts back the 'photo:true', so we need to sanitize it.            
             if (answer.trim().toLowerCase() !== config.openaiBotCommandPhoto) {
-                await page.type('div[title="Type a message"]', answer);
+                const pattern = new RegExp(config.openaiBotCommandPhotoRegex, "gmi"); // The "i" flag makes it case-insensitive
+                const filteredAnswer = answer.replace(pattern, '');
+
+                await page.type('div[title="Type a message"]', filteredAnswer);
                 await page.waitForTimeout(1000);
                 await page.locator('[aria-label="Send"]>>nth=0').click();
                 await page.waitForTimeout(1000);
