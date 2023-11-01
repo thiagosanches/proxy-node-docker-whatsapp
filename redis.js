@@ -18,10 +18,13 @@ module.exports.load = async function () {
         openaiBotCommandPhoto: await client.get('whatsapp/openai-bot-command-photo'),
         openaiBotCommandPhotoFailed: await client.get('whatsapp/openai-bot-command-photo-failed'),
         openaiBotCommandPhotoRegex: await client.get('whatsapp/openai-bot-command-photo-regex'),
+        openaiBotCommandScrape: await client.get('whatsapp/openai-bot-command-scrape'),
+        openaiBotCommandScrapePrompt: await client.get('whatsapp/openai-bot-command-scrape-prompt'),
+        openaiBotCommandScrapeFailed: await client.get('whatsapp/openai-bot-command-scrape-failed'),
+        openaiBotCommandScrapeRegex: await client.get('whatsapp/openai-bot-command-scrape-regex'),
     }
 
     console.log('📁 [DONE] Loading configuration from redis.');
     await client.disconnect();
     return configuration;
 };
-

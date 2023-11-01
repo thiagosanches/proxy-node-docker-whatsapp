@@ -6,7 +6,7 @@ const { chromium } = require('playwright');
 const { Configuration, OpenAIApi } = require("openai");
 
 let config = {};
-let blockedBySendingPicture = false;
+let blockedByCommand = false;
 let totalPhotosTakenByDay = 0;
 let browser, page;
 
@@ -14,8 +14,11 @@ const userDataPathToStoreWhatsappSession = "/tmp/whatsapp_userdata";
 const app = express();
 app.use(bodyParser.json());
 
+/* MY MINI-APPS */
+const scrape = require('./mini-apps/scrape');
+
 cron.schedule('30 * * * * *', async () => {
-    if (page && !blockedBySendingPicture) {
+    if (page && !blockedByCommand) {
         console.log("[node-cron]", "It's time to check for unread messages!")
         await autoReplyUnreadMessages();
     }
@@ -88,14 +91,14 @@ async function autoReplyUnreadMessages() {
                 prompt: config.openaiBotChatPrompt.replaceAll("##TEXT##", chatTextFlattened)
             });
 
-            const answer = possibleAnswers.data.choices[0].text.replaceAll('\\n', '').trim();
+            let answer = possibleAnswers.data.choices[0].text.replaceAll('\\n', '').trim();
             console.log('[chatGPT response]', answer);
 
             // if for some reason the message contains that magic command 'photo:true' (openaiBotCommandPhoto),
             // it will try to generate an image with DALLE, in order to send it, but only if it's still on the limit.
             if (answer.trim().toLowerCase().includes(config.openaiBotCommandPhoto)) {
                 if (totalPhotosTakenByDay <= config.openaiBotTotalPhotosLimit) {
-                    blockedBySendingPicture = true;
+                    blockedByCommand = true;
 
                     const activities = config.openaiBotActivities;
                     const photoFinalPrompt = config.openaiBotDallePrompt.replaceAll("##TEXT##",
@@ -125,6 +128,12 @@ async function autoReplyUnreadMessages() {
                 }
             }
 
+            // TODO: make it better to organize it.
+            if (answer.trim().toLowerCase().includes(config.openaiBotCommandScrape)) {
+                blockedByCommand = true;
+                answer = await scrape.run(answer);
+            }
+
             // Sometimes GPT respond back with only the command defined as a 'placeholder' for photos like: 'photo:true',
             // and I don't want it to answer with that value! 
             // I noticed that even with a normal phrase, it puts back the 'photo:true', so we need to sanitize it.            
@@ -139,12 +148,13 @@ async function autoReplyUnreadMessages() {
             }
         }
 
-        blockedBySendingPicture = false;
+        blockedByCommand = false;
         await page.reload();
         await page.waitForTimeout(1000);
 
     } catch (e) {
-        console.log(e)
+        console.log(e);
+        blockedByCommand = false;
     }
 
     return data;
@@ -161,4 +171,4 @@ app.get('/login', async function (req, res) {
     res.end('Browser started read the qr-code!');
 });
 
-app.listen(3000);
+app.listen(3001);
