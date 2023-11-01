@@ -36,9 +36,11 @@ WORKDIR /home/${username}
 
 # Application
 RUN mkdir -p /home/$username/app
+RUN mkdir -p /home/$username/app/mini-apps
 COPY --chown=guest:guest package*.json /home/$username/app/
 COPY --chown=guest:guest main.js /home/$username/app/
 COPY --chown=guest:guest redis.js /home/$username/app/
+COPY --chown=guest:guest mini-apps/scrape.js /home/$username/app/mini-apps/
 RUN ls -la /home/$username/app/*
 
 WORKDIR /home/$username/app/
