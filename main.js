@@ -6,10 +6,11 @@ const { chromium } = require('playwright');
 const { Configuration, OpenAIApi } = require("openai");
 const { createLogger, format, transports } = require('winston');
 
+const timezoned = () => { return new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }); };
 const consoleFormat = format.combine(
     format.label({ label: "proxy-node-docker-whatsapp" }),
     format.colorize(),
-    format.timestamp(),
+    format.timestamp({ format: timezoned }),
     format.align(),
     format.splat(),
     format.printf((info) => {
@@ -169,7 +170,7 @@ async function autoReplyUnreadMessages() {
             // TODO: make it better to organize it.
             if (answer.trim().toLowerCase().includes(config.openaiBotCommandScrape)) {
                 blockedByCommand = true;
-                answer = await scrape.run(answer);
+                answer = await scrape.run(logger, answer);
             }
 
             // Sometimes GPT respond back with only the command defined as a 'placeholder' for photos like: 'photo:true',
@@ -185,12 +186,12 @@ async function autoReplyUnreadMessages() {
                 await page.waitForTimeout(1000);
             }
         }
-
-        blockedByCommand = false;
         await page.reload();
         await page.waitForTimeout(1000);
     } catch (e) {
         logger.error(e);
+    }
+    finally {
         blockedByCommand = false;
     }
 
@@ -202,10 +203,10 @@ app.get('/login', async function (req, res) {
 
     browser = await chromium.launchPersistentContext(userDataPathToStoreWhatsappSession,
         { headless: false, permissions: ["clipboard-read", "clipboard-write"] });
+
     page = await browser.newPage();
     await page.goto('https://web.whatsapp.com/');
-
-    res.end('Browser started read the qr-code!');
+    res.end('Browser started read the qr-code, if necessary!');
 });
 
-app.listen(3001);
+app.listen(3000);

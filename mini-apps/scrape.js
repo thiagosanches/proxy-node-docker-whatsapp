@@ -15,15 +15,15 @@ module.exports.run = async function (logger, input) {
         openaiBotCommandScrapePrompt,
         openaiBotCommandScrapeFailed,
         openaiBotCommandScrapeRegex,
-    } = await config.load();
+    } = await config.load(logger);
 
     const regex = `(${openaiBotCommandScrapeRegex})(.*)`;
-    logger.info('[scrape]', regex)
+    logger.info('[scrape] %o', regex);
     const pattern = new RegExp(regex, "gmi"); // The "i" flag makes it case-insensitive
     const resultRegex = pattern.exec(input.trim().toLowerCase())
 
     const url = resultRegex[2].trim();
-    logger.info('[scrape]', url);
+    logger.info('[scrape] %o', url);
 
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext();
@@ -80,9 +80,10 @@ module.exports.run = async function (logger, input) {
         });
     }
     catch (e) {
-        logger.error(e);
+        console.log(e);
+        logger.error(e, e);
     }
-    logger.info("[scrape]", answer.data.choices);
+    logger.info("[scrape] %o", answer.data.choices);
     const response = answer.data.choices[0].message.content;
     logger.info('[scrape] Finished!');
     return response;
