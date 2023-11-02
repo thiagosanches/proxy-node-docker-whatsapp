@@ -82,9 +82,8 @@ module.exports.run = async function (input) {
     catch (e) {
         console.log(e);
     }
-
-    const response = answer.data.choices[0].text.replaceAll('\\n', '').trim().toLowerCase();
-    console.log(response);
+    console.log("[scrape]", answer.data.choices);
+    const response = answer.data.choices[0].message.content;
     console.log('[scrape] Finished!');
     return response;
 }

@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 /* MY MINI-APPS */
 const scrape = require('./mini-apps/scrape');
 
-cron.schedule('30 * * * * *', async () => {
+cron.schedule('20 * * * * *', async () => {
     if (page && !blockedByCommand) {
         console.log("[node-cron]", "It's time to check for unread messages!")
         await autoReplyUnreadMessages();
@@ -42,11 +42,30 @@ async function autoReplyUnreadMessages() {
         await page.waitForTimeout(250);
         const mainDiv = await page.evaluate(async () => document.getElementById("main").innerText);
 
-        // The first thing is the contact name, 
+        // The first thing is the contact name,
         // I know that's ugly, but it's a pain inspect everything.
         const contactName = mainDiv.split('\n')[0].trim();
         const elements = await page.evaluate(async () => {
             const nodeList = document.querySelectorAll('[aria-live="polite"]'); // that message that says 'X UNREAD MESSAGE'
+
+            // Let's eliminate any div that displays the small URL preview,
+            // as it can sometimes lead to comprehension issues for GPT.
+            const linksPreview = document.querySelectorAll(".M6sU5");
+            if (linksPreview) {
+                linksPreview.forEach(element => {
+                    element.parentNode.removeChild(element);
+                })
+            }
+
+            // Let's eliminate any span that displays the time,
+            // as it can sometimes lead to comprehension issues for GPT.
+            const spanTime = document.querySelectorAll(".l7jjieqr.fewfhwl7");
+            if (spanTime) {
+                spanTime.forEach(element => {
+                    element.parentNode.removeChild(element);
+                })
+            }
+
             const elementArray = Array.from(nodeList);
             const messages = [];
             return elementArray.map(element => {
@@ -54,8 +73,9 @@ async function autoReplyUnreadMessages() {
                 if (parentNodeUnreadMessage) {
                     while (parentNodeUnreadMessage &&
                         parentNodeUnreadMessage.nextElementSibling) {
-                        messages.push(parentNodeUnreadMessage.nextElementSibling.innerText);
+                        messages.push(parentNodeUnreadMessage.nextElementSibling.innerText.split('\n'));
                         parentNodeUnreadMessage = parentNodeUnreadMessage.nextElementSibling;
+                        console.log(parentNodeUnreadMessage.nextElementSibling);
                     }
                 }
                 return messages
@@ -69,9 +89,9 @@ async function autoReplyUnreadMessages() {
 
         console.log('[chat received]', data);
 
-        // clear a little bit the content prior to forward to ChatGPT.
-        const chatTextFlattened = elements.flat(Infinity).join(" ");
 
+        // clear a little bit the content prior to forward to ChatGPT.
+        const chatTextFlattened = elements.flat(Infinity).join(": ");
         console.log("[chatTextFlattened]", chatTextFlattened);
         console.log("[openaiBotName]", config.openaiBotName);
         console.log("[openaiBotTurnedOn]", config.openaiBotTurnedOn);
