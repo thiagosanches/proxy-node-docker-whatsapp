@@ -35,7 +35,7 @@ app.use(bodyParser.json());
 /* MY MINI-APPS */
 const scrape = require('./mini-apps/scrape');
 
-cron.schedule('20 * * * * *', async () => {
+cron.schedule('30 * * * * *', async () => {
     if (page && !blockedByCommand) {
         logger.info("It's time to check for unread messages!");
         await autoReplyUnreadMessages();
