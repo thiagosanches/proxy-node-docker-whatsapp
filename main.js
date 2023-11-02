@@ -134,7 +134,7 @@ async function autoReplyUnreadMessages() {
             for (const bla of message.message) {
                 const name = message.name
                 const chat = bla[bla.length - 1];
-                if (chat.indexOf(config.openaiBotName) > 0) {
+                if (chat.indexOf('@' + config.openaiBotName) > 0) {
                     chatMessagesPayload.push({
                         role: "user", content: `${name}: "${chat}"`
                     })
