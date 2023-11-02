@@ -28,7 +28,6 @@ let blockedByCommand = false;
 let totalPhotosTakenByDay = 0;
 let browser, page;
 
-const memoryPastMessages = [];
 const userDataPathToStoreWhatsappSession = "/tmp/whatsapp_userdata";
 const app = express();
 app.use(bodyParser.json());
@@ -65,9 +64,7 @@ async function autoReplyUnreadMessages() {
         // I know that's ugly, but it's a pain inspect everything.
         const contactName = mainDiv.split('\n')[0].trim();
         const elements = await page.evaluate(async () => {
-            const nodeList = document.querySelectorAll('[aria-live="polite"]'); // that message that says 'X UNREAD MESSAGE'
-
-            // Let's eliminate any div that displays the small URL preview,
+            // Eliminate any div that displays the small URL preview,
             // as it can sometimes lead to comprehension issues for GPT.
             const linksPreview = document.querySelectorAll(".M6sU5");
             if (linksPreview) {
@@ -76,7 +73,7 @@ async function autoReplyUnreadMessages() {
                 })
             }
 
-            // Let's eliminate any span that displays the time,
+            // And let's eliminate any span that displays the time,
             // as it can sometimes lead to comprehension issues for GPT.
             const spanTime = document.querySelectorAll(".l7jjieqr.fewfhwl7");
             if (spanTime) {
@@ -85,55 +82,73 @@ async function autoReplyUnreadMessages() {
                 })
             }
 
-            // Get the contact name and the messages that the person has been sent!
-            const peopleAndMessages = [];
-            let nodeList1 = document.querySelectorAll('[data-pre-plain-text]');
-            let elementArray = Array.from(nodeList1);
-            elementArray.forEach(element => {
-                const personName = element.getAttribute("data-pre-plain-text").split("]")[1].trim().replaceAll(":", "");
-                const messageFromPerson = element.innerText.trim();
-                const existingPerson = peopleAndMessages.find(a => a.name === personName);
-                if (!existingPerson) {
-                    peopleAndMessages.push({
-                        name: personName,
-                        message: [messageFromPerson]
-                    });
+            // that message that says 'X UNREAD MESSAGE'
+            const nodeListUnreadMessages = document.querySelectorAll('[aria-live="polite"]');
+            let nodeListUnreadMessagesArray = Array.from(nodeListUnreadMessages);
+            let peopleAndMessages = [];
+
+            // This code iterates through sibling nodes of the div element with the [aria-live="polite"] attribute.
+            // It aims to identify the sender of each message and extract the content of the message.
+            // While this method employs a brute-force approach, it is necessary due to the lack of a public API for this purpose.
+            nodeListUnreadMessagesArray.forEach(element => {
+                let parentNodeUnreadMessage = element.parentNode;
+                if (parentNodeUnreadMessage) {
+                    while (parentNodeUnreadMessage &&
+                        parentNodeUnreadMessage.nextElementSibling) {
+                        parentNodeUnreadMessage = parentNodeUnreadMessage.nextElementSibling;
+                        const personNode = parentNodeUnreadMessage.children[0].children[0].children[1].querySelectorAll('[data-pre-plain-text]');
+                        const personName = personNode[0].attributes['data-pre-plain-text'].nodeValue.split("]")[1].trim().replaceAll(":", "");
+                        const messageFromPerson = parentNodeUnreadMessage.innerText.split('\n')
+                        const existingPerson = peopleAndMessages.find(a => a.name === personName);
+                        if (!existingPerson) {
+                            peopleAndMessages.push({
+                                name: personName,
+                                message: [messageFromPerson]
+                            })
+                        }
+                        else {
+                            existingPerson.message.push(messageFromPerson)
+                        }
+                    }
                 }
-                else {
-                    existingPerson.message.push(messageFromPerson)
-                }
-            })
+            });
+
             return peopleAndMessages;
         });
 
         data.push({
             contactName: contactName,
-            messages: elements.flat(Infinity)
+            messages: elements
         });
 
         logger.info('[chat received] %o', data);
 
-        // Prepare just the messages that have mention to the bot user and has not been asked in the last 30 minutes.
-        let mentionedMessages = '';
-        for (const message of data[0].messages) {
-            groupedTextMessagePerPerson = message.message.filter(a => a.includes(config.openaiBotName));
-            for (const messageFromPerson of groupedTextMessagePerPerson) {
+        // Prepare just the messages that have mention to the bot user, 
+        // and get always the latest message which is the message itself that we want it.
+        let chatMessagesPayload = [
+            { role: "system", content: config.openaiBotChatPrompt },
+        ];
 
-                if (!memoryPastMessages.find(a => a === messageFromPerson)) {
-                    memoryPastMessages.push(messageFromPerson);
-                    mentionedMessages += `${message.name}: "${messageFromPerson}"`
+        // TODO: make it better the properties names below, it's confusing.
+        for (const message of data[0].messages) {
+            for (const bla of message.message) {
+                const name = message.name
+                const chat = bla[bla.length - 1];
+                if (chat.indexOf(config.openaiBotName) > 0) {
+                    chatMessagesPayload.push({
+                        role: "user", content: `${name}: "${chat}"`
+                    })
                 }
             }
-            mentionedMessages += '\n';
         }
 
         // clear a little bit the content prior to forward to ChatGPT.
-        logger.info("[mentionedMessages] %o", mentionedMessages);
+        logger.info("[chatMessagesPayload] %o", chatMessagesPayload);
         logger.info("[openaiBotName] %o", config.openaiBotName);
         logger.info("[openaiBotTurnedOn] %o", config.openaiBotTurnedOn);
 
         // only answer if you have been mentioned and the bot is turned on.
-        if (mentionedMessages.length > 0 &&
+        if (chatMessagesPayload.length > 0 &&
             config.openaiBotTurnedOn) {
 
             logger.info("🤖 Bot mentioned and turned on!");
@@ -144,10 +159,7 @@ async function autoReplyUnreadMessages() {
                 model: config.openaiBotModel,
                 max_tokens: config.openaiBotMaxTokens,
                 temperature: config.openaiBotTemperature,
-                messages: [
-                    { role: "system", content: config.openaiBotChatPrompt },
-                    { role: "user", content: mentionedMessages }
-                ]
+                messages: chatMessagesPayload
             });
 
             let answer = possibleAnswers.data.choices[0].message.content.replaceAll('\\n', '').trim();
