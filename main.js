@@ -44,7 +44,7 @@ cron.schedule('30 * * * * *', async () => {
 
 cron.schedule('*/5 * * * *', async () => {
     logger.info("It's time to refresh the redis config again!");
-    config = await redis.load();
+    config = await redis.load(logger);
 });
 
 cron.schedule('0 0 0 * * *', async () => {
