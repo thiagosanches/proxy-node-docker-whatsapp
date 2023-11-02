@@ -134,7 +134,7 @@ async function autoReplyUnreadMessages() {
             for (const bla of message.message) {
                 const name = message.name
                 const chat = bla[bla.length - 1];
-                if (chat.indexOf('@' + config.openaiBotName) > 0) {
+                if (chat.indexOf('@' + config.openaiBotName) >= 0) {
                     chatMessagesPayload.push({
                         role: "user", content: `${name}: "${chat}"`
                     })
@@ -148,7 +148,7 @@ async function autoReplyUnreadMessages() {
         logger.info("[openaiBotTurnedOn] %o", config.openaiBotTurnedOn);
 
         // only answer if you have been mentioned and the bot is turned on.
-        if (chatMessagesPayload.length > 0 &&
+        if (chatMessagesPayload.length > 1 &&
             config.openaiBotTurnedOn) {
 
             logger.info("🤖 Bot mentioned and turned on!");
