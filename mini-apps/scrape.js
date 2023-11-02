@@ -4,8 +4,8 @@ const { Configuration, OpenAIApi } = require("openai");
 const natural = require('natural');
 const cleanTextUtils = require('clean-text-utils');
 
-module.exports.run = async function (input) {
-    console.log('[scrape] Requested!');
+module.exports.run = async function (logger, input) {
+    logger.info('[scrape] Requested!');
 
     const {
         openaiBotKey,
@@ -18,12 +18,12 @@ module.exports.run = async function (input) {
     } = await config.load();
 
     const regex = `(${openaiBotCommandScrapeRegex})(.*)`;
-    console.log('[scrape]', regex)
+    logger.info('[scrape]', regex)
     const pattern = new RegExp(regex, "gmi"); // The "i" flag makes it case-insensitive
     const resultRegex = pattern.exec(input.trim().toLowerCase())
 
     const url = resultRegex[2].trim();
-    console.log('[scrape]', url);
+    logger.info('[scrape]', url);
 
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext();
@@ -80,10 +80,10 @@ module.exports.run = async function (input) {
         });
     }
     catch (e) {
-        console.log(e);
+        logger.error(e);
     }
-    console.log("[scrape]", answer.data.choices);
+    logger.info("[scrape]", answer.data.choices);
     const response = answer.data.choices[0].message.content;
-    console.log('[scrape] Finished!');
+    logger.info('[scrape] Finished!');
     return response;
 }

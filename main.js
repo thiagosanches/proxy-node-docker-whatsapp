@@ -4,6 +4,23 @@ const cron = require('node-cron');
 const redis = require('./redis');
 const { chromium } = require('playwright');
 const { Configuration, OpenAIApi } = require("openai");
+const { createLogger, format, transports } = require('winston');
+
+const consoleFormat = format.combine(
+    format.label({ label: "proxy-node-docker-whatsapp" }),
+    format.colorize(),
+    format.timestamp(),
+    format.align(),
+    format.splat(),
+    format.printf((info) => {
+        if (typeof info.message === 'object') {
+            info.message = JSON.stringify(info.message, null, 3)
+        }
+        return `${info.timestamp} - ${info.level} [${info.label}]: ${info.message}`
+    })
+)
+
+const logger = createLogger({ format: consoleFormat, transports: [new transports.Console()] });
 
 let config = {};
 let blockedByCommand = false;
@@ -19,18 +36,18 @@ const scrape = require('./mini-apps/scrape');
 
 cron.schedule('20 * * * * *', async () => {
     if (page && !blockedByCommand) {
-        console.log("[node-cron]", "It's time to check for unread messages!")
+        logger.info("It's time to check for unread messages!");
         await autoReplyUnreadMessages();
     }
 });
 
 cron.schedule('*/5 * * * *', async () => {
-    console.log("[node-cron]", "It's time to refresh the redis config again!")
+    logger.info("It's time to refresh the redis config again!");
     config = await redis.load();
 });
 
 cron.schedule('0 0 0 * * *', async () => {
-    console.log("[node-cron]", "It's time to set to 0 the photos taken by day!");
+    logger.info("It's time to set to 0 the photos taken by day!");
     totalPhotosTakenByDay = 0;
 });
 
@@ -75,7 +92,6 @@ async function autoReplyUnreadMessages() {
                         parentNodeUnreadMessage.nextElementSibling) {
                         messages.push(parentNodeUnreadMessage.nextElementSibling.innerText.split('\n'));
                         parentNodeUnreadMessage = parentNodeUnreadMessage.nextElementSibling;
-                        console.log(parentNodeUnreadMessage.nextElementSibling);
                     }
                 }
                 return messages
@@ -87,20 +103,19 @@ async function autoReplyUnreadMessages() {
             messages: elements.flat(Infinity)
         });
 
-        console.log('[chat received]', data);
-
+        logger.info('[chat received] %o', data);
 
         // clear a little bit the content prior to forward to ChatGPT.
         const chatTextFlattened = elements.flat(Infinity).join(": ");
-        console.log("[chatTextFlattened]", chatTextFlattened);
-        console.log("[openaiBotName]", config.openaiBotName);
-        console.log("[openaiBotTurnedOn]", config.openaiBotTurnedOn);
+        logger.info("[chatTextFlattened] %o", chatTextFlattened);
+        logger.info("[openaiBotName] %o", config.openaiBotName);
+        logger.info("[openaiBotTurnedOn] %o", config.openaiBotTurnedOn);
 
         // only answer if you have been mentioned and the bot is turned on.
         if (chatTextFlattened.indexOf('@' + config.openaiBotName) > 0 &&
             config.openaiBotTurnedOn) {
 
-            console.log("🤖 Bot mentioned and turned on!");
+            logger.info("🤖 Bot mentioned and turned on!");
             const configuration = new Configuration({ apiKey: config.openaiBotKey });
             const openai = new OpenAIApi(configuration);
 
@@ -115,7 +130,7 @@ async function autoReplyUnreadMessages() {
             });
 
             let answer = possibleAnswers.data.choices[0].message.content.replaceAll('\\n', '').trim();
-            console.log('[chatGPT response]', answer);
+            logger.info('[chatGPT response] %o', answer);
 
             // if for some reason the message contains that magic command 'photo:true' (openaiBotCommandPhoto),
             // it will try to generate an image with DALLE, in order to send it, but only if it's still on the limit.
@@ -174,9 +189,8 @@ async function autoReplyUnreadMessages() {
         blockedByCommand = false;
         await page.reload();
         await page.waitForTimeout(1000);
-
     } catch (e) {
-        console.log(e);
+        logger.error(e);
         blockedByCommand = false;
     }
 
@@ -184,7 +198,7 @@ async function autoReplyUnreadMessages() {
 };
 
 app.get('/login', async function (req, res) {
-    config = await redis.load();
+    config = await redis.load(logger);
 
     browser = await chromium.launchPersistentContext(userDataPathToStoreWhatsappSession,
         { headless: false, permissions: ["clipboard-read", "clipboard-write"] });
@@ -194,4 +208,4 @@ app.get('/login', async function (req, res) {
     res.end('Browser started read the qr-code!');
 });
 
-app.listen(3000);
+app.listen(3001);

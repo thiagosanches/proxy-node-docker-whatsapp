@@ -1,6 +1,6 @@
 const redis = require('redis');
-module.exports.load = async function () {
-    console.log('📁 Loading configuration from redis.');
+module.exports.load = async function (logger) {
+    logger.info('📁 Loading configuration from redis.');
     const client = redis.createClient({ url: process.env.REDIS_URL });
     await client.connect();
 
@@ -24,7 +24,7 @@ module.exports.load = async function () {
         openaiBotCommandScrapeRegex: await client.get('whatsapp/openai-bot-command-scrape-regex'),
     }
 
-    console.log('📁 [DONE] Loading configuration from redis.');
+    logger.info('📁 [DONE] Loading configuration from redis.');
     await client.disconnect();
     return configuration;
 };
