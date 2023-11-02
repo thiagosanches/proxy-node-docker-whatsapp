@@ -28,6 +28,7 @@ let blockedByCommand = false;
 let totalPhotosTakenByDay = 0;
 let browser, page;
 
+const memoryPastMessages = [];
 const userDataPathToStoreWhatsappSession = "/tmp/whatsapp_userdata";
 const app = express();
 app.use(bodyParser.json());
@@ -84,19 +85,25 @@ async function autoReplyUnreadMessages() {
                 })
             }
 
-            const elementArray = Array.from(nodeList);
-            const messages = [];
-            return elementArray.map(element => {
-                let parentNodeUnreadMessage = element.parentNode;
-                if (parentNodeUnreadMessage) {
-                    while (parentNodeUnreadMessage &&
-                        parentNodeUnreadMessage.nextElementSibling) {
-                        messages.push(parentNodeUnreadMessage.nextElementSibling.innerText.split('\n'));
-                        parentNodeUnreadMessage = parentNodeUnreadMessage.nextElementSibling;
-                    }
+            // Get the contact name and the messages that the person has been sent!
+            const peopleAndMessages = [];
+            let nodeList1 = document.querySelectorAll('[data-pre-plain-text]');
+            let elementArray = Array.from(nodeList1);
+            elementArray.forEach(element => {
+                const personName = element.getAttribute("data-pre-plain-text").split("]")[1].trim().replaceAll(":", "");
+                const messageFromPerson = element.innerText.trim();
+                const existingPerson = peopleAndMessages.find(a => a.name === personName);
+                if (!existingPerson) {
+                    peopleAndMessages.push({
+                        name: personName,
+                        message: [messageFromPerson]
+                    });
                 }
-                return messages
-            });
+                else {
+                    existingPerson.message.push(messageFromPerson)
+                }
+            })
+            return peopleAndMessages;
         });
 
         data.push({
@@ -106,14 +113,27 @@ async function autoReplyUnreadMessages() {
 
         logger.info('[chat received] %o', data);
 
+        // Prepare just the messages that have mention to the bot user and has not been asked in the last 30 minutes.
+        let mentionedMessages = '';
+        for (const message of data[0].messages) {
+            groupedTextMessagePerPerson = message.message.filter(a => a.includes(config.openaiBotName));
+            for (const messageFromPerson of groupedTextMessagePerPerson) {
+
+                if (!memoryPastMessages.find(a => a === messageFromPerson)) {
+                    memoryPastMessages.push(messageFromPerson);
+                    mentionedMessages += `${message.name}: "${messageFromPerson}"`
+                }
+            }
+            mentionedMessages += '\n';
+        }
+
         // clear a little bit the content prior to forward to ChatGPT.
-        const chatTextFlattened = elements.flat(Infinity).join(": ");
-        logger.info("[chatTextFlattened] %o", chatTextFlattened);
+        logger.info("[mentionedMessages] %o", mentionedMessages);
         logger.info("[openaiBotName] %o", config.openaiBotName);
         logger.info("[openaiBotTurnedOn] %o", config.openaiBotTurnedOn);
 
         // only answer if you have been mentioned and the bot is turned on.
-        if (chatTextFlattened.indexOf('@' + config.openaiBotName) > 0 &&
+        if (mentionedMessages.length > 0 &&
             config.openaiBotTurnedOn) {
 
             logger.info("🤖 Bot mentioned and turned on!");
@@ -126,7 +146,7 @@ async function autoReplyUnreadMessages() {
                 temperature: config.openaiBotTemperature,
                 messages: [
                     { role: "system", content: config.openaiBotChatPrompt },
-                    { role: "user", content: chatTextFlattened }
+                    { role: "user", content: mentionedMessages }
                 ]
             });
 
