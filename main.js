@@ -84,14 +84,17 @@ async function autoReplyUnreadMessages() {
             const configuration = new Configuration({ apiKey: config.openaiBotKey });
             const openai = new OpenAIApi(configuration);
 
-            possibleAnswers = await openai.createCompletion({
+            const possibleAnswers = await openai.createChatCompletion({
                 model: config.openaiBotModel,
                 max_tokens: config.openaiBotMaxTokens,
                 temperature: config.openaiBotTemperature,
-                prompt: config.openaiBotChatPrompt.replaceAll("##TEXT##", chatTextFlattened)
+                messages: [
+                    { role: "system", content: config.openaiBotChatPrompt },
+                    { role: "user", content: chatTextFlattened }
+                ]
             });
 
-            let answer = possibleAnswers.data.choices[0].text.replaceAll('\\n', '').trim();
+            let answer = possibleAnswers.data.choices[0].message.content.replaceAll('\\n', '').trim();
             console.log('[chatGPT response]', answer);
 
             // if for some reason the message contains that magic command 'photo:true' (openaiBotCommandPhoto),

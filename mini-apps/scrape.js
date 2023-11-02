@@ -64,16 +64,19 @@ module.exports.run = async function (input) {
         content += `${token} `
     }
 
-    content = content.trim();
+    const finalText = content.trim();
     let answer = openaiBotCommandScrapeFailed;
     try {
         const configuration = new Configuration({ apiKey: openaiBotKey });
         const openai = new OpenAIApi(configuration);
-        answer = await openai.createCompletion({
+        answer = await openai.createChatCompletion({
             model: openaiBotModel,
             max_tokens: openaiBotMaxTokens,
             temperature: openaiBotTemperature,
-            prompt: `${openaiBotCommandScrapePrompt} "${content}"`
+            messages: [
+                { role: "system", content: openaiBotCommandScrapePrompt },
+                { role: "user", content: finalText }
+            ]
         });
     }
     catch (e) {
