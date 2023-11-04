@@ -65,6 +65,7 @@ async function autoReplyUnreadMessages() {
 
     try {
         blocked = true;
+        const isMentioned = false;
         await page.locator('[aria-label="Unread"]>>nth=0', { timeout: 250 }).click();
         await page.waitForTimeout(250);
         const mainDiv = await page.evaluate(async () => document.getElementById("main").innerText);
@@ -141,6 +142,7 @@ async function autoReplyUnreadMessages() {
                 const person = message.name
                 const chat = bla[bla.length - 1];
                 if (chat.indexOf('@' + config.openaiBotName) >= 0) {
+                    isMentioned = true;
                     let filteredPerson = chatMessagesHistory[groupName].find(a => a.name === person);
                     if (!filteredPerson) {
                         logger.info("first message from person: %o", person);
@@ -160,6 +162,7 @@ async function autoReplyUnreadMessages() {
             }
         }
 
+
         for (const personMessages of chatMessagesHistory[groupName]) {
             const currentPersonMessages = personMessages.messages;
             // clear a little bit the content prior to forward to ChatGPT.
@@ -168,8 +171,7 @@ async function autoReplyUnreadMessages() {
             logger.info("[openaiBotTurnedOn] %o", config.openaiBotTurnedOn);
 
             // only answer if you have been mentioned and the bot is turned on.
-            if (currentPersonMessages.length > 1 &&
-                config.openaiBotTurnedOn) {
+            if (isMentioned && config.openaiBotTurnedOn) {
 
                 logger.info("🤖 Bot mentioned and turned on!");
                 const configuration = new Configuration({ apiKey: config.openaiBotKey });
