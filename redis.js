@@ -22,6 +22,7 @@ module.exports.load = async function (logger) {
         openaiBotCommandScrapePrompt: await client.get('whatsapp/openai-bot-command-scrape-prompt'),
         openaiBotCommandScrapeFailed: await client.get('whatsapp/openai-bot-command-scrape-failed'),
         openaiBotCommandScrapeRegex: await client.get('whatsapp/openai-bot-command-scrape-regex'),
+        openaiBotSaidKeyword: await client.get('whatsapp/openai-bot-said-keyword')
     }
 
     logger.info('📁 [DONE] Loading configuration from redis.');
