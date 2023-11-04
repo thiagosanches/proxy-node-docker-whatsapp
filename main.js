@@ -65,7 +65,6 @@ async function autoReplyUnreadMessages() {
 
     try {
         blocked = true;
-        let isMentioned = false;
         await page.locator('[aria-label="Unread"]>>nth=0', { timeout: 250 }).click();
         await page.waitForTimeout(250);
         const mainDiv = await page.evaluate(async () => document.getElementById("main").innerText);
@@ -142,7 +141,6 @@ async function autoReplyUnreadMessages() {
                 const person = message.name
                 const chat = bla[bla.length - 1];
                 if (chat.indexOf('@' + config.openaiBotName) >= 0) {
-                    isMentioned = true;
                     let filteredPerson = chatMessagesHistory[groupName].find(a => a.name === person);
                     if (!filteredPerson) {
                         logger.info("first message from person: %o", person);
@@ -154,6 +152,7 @@ async function autoReplyUnreadMessages() {
                         }
                         chatMessagesHistory[groupName].push(filteredPerson);
                     }
+                    filteredPerson.mentionedYou = true;
                     filteredPerson.name = person;
                     filteredPerson.messages.push({
                         role: "user", content: `${person} ${config.openaiBotSaidKeyword}: "${chat}"`
@@ -162,18 +161,19 @@ async function autoReplyUnreadMessages() {
             }
         }
 
-
         for (const personMessages of chatMessagesHistory[groupName]) {
-            const currentPersonMessages = personMessages.messages;
+            const currentPerson = personMessages;
+            const currentPersonMessages = currentPerson.messages;
             // clear a little bit the content prior to forward to ChatGPT.
             logger.info("[chatMessagesHistory] %o", currentPersonMessages);
             logger.info("[openaiBotName] %o", config.openaiBotName);
             logger.info("[openaiBotTurnedOn] %o", config.openaiBotTurnedOn);
 
             // only answer if you have been mentioned and the bot is turned on.
-            if (isMentioned && config.openaiBotTurnedOn) {
-
+            if (currentPerson.mentionedYou
+                && config.openaiBotTurnedOn) {
                 logger.info("🤖 Bot mentioned and turned on!");
+                currentPerson.mentionedYou = false;
                 const configuration = new Configuration({ apiKey: config.openaiBotKey });
                 const openai = new OpenAIApi(configuration);
 
