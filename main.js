@@ -27,6 +27,7 @@ let config = {};
 let blockedByCommand = false;
 let totalPhotosTakenByDay = 0;
 let browser, page;
+let chatMessagesHistory = {};
 
 const userDataPathToStoreWhatsappSession = "/tmp/whatsapp_userdata";
 const app = express();
@@ -50,6 +51,11 @@ cron.schedule('*/5 * * * *', async () => {
 cron.schedule('0 0 0 * * *', async () => {
     logger.info("It's time to set to 0 the photos taken by day!");
     totalPhotosTakenByDay = 0;
+});
+
+cron.schedule('0 0 */1 * * *', async () => {
+    logger.info("It's time to refresh the chat history!");
+    chatMessagesHistory = {}
 });
 
 async function autoReplyUnreadMessages() {
@@ -97,6 +103,7 @@ async function autoReplyUnreadMessages() {
                         parentNodeUnreadMessage.nextElementSibling) {
                         parentNodeUnreadMessage = parentNodeUnreadMessage.nextElementSibling;
                         const personNode = parentNodeUnreadMessage.children[0].children[0].children[1].querySelectorAll('[data-pre-plain-text]');
+                        if (personNode.length == 0) continue;
                         const personName = personNode[0].attributes['data-pre-plain-text'].nodeValue.split("]")[1].trim().replaceAll(":", "");
                         const messageFromPerson = parentNodeUnreadMessage.innerText.split('\n')
                         const existingPerson = peopleAndMessages.find(a => a.name === personName);
@@ -123,19 +130,21 @@ async function autoReplyUnreadMessages() {
 
         logger.info('[chat received] %o', data);
 
+        if (!chatMessagesHistory[contactName]) {
+            chatMessagesHistory[contactName] = {};
+            chatMessagesHistory[contactName].messages = [];
+            chatMessagesHistory[contactName].messages.push({ role: "system", content: config.openaiBotChatPrompt });
+        }
+
         // Prepare just the messages that have mention to the bot user, 
         // and get always the latest message which is the message itself that we want it.
-        let chatMessagesPayload = [
-            { role: "system", content: config.openaiBotChatPrompt },
-        ];
-
         // TODO: make it better the properties names below, it's confusing.
         for (const message of data[0].messages) {
             for (const bla of message.message) {
                 const name = message.name
                 const chat = bla[bla.length - 1];
                 if (chat.indexOf('@' + config.openaiBotName) >= 0) {
-                    chatMessagesPayload.push({
+                    chatMessagesHistory[contactName].messages.push({
                         role: "user", content: `${name} ${config.openaiBotSaidKeyword}: "${chat}"`
                     })
                 }
@@ -143,12 +152,12 @@ async function autoReplyUnreadMessages() {
         }
 
         // clear a little bit the content prior to forward to ChatGPT.
-        logger.info("[chatMessagesPayload] %o", chatMessagesPayload);
+        logger.info("[chatMessagesHistory] %o", chatMessagesHistory[contactName].messages);
         logger.info("[openaiBotName] %o", config.openaiBotName);
         logger.info("[openaiBotTurnedOn] %o", config.openaiBotTurnedOn);
 
         // only answer if you have been mentioned and the bot is turned on.
-        if (chatMessagesPayload.length > 1 &&
+        if (chatMessagesHistory[contactName].messages.length > 1 &&
             config.openaiBotTurnedOn) {
 
             logger.info("🤖 Bot mentioned and turned on!");
@@ -159,10 +168,11 @@ async function autoReplyUnreadMessages() {
                 model: config.openaiBotModel,
                 max_tokens: config.openaiBotMaxTokens,
                 temperature: config.openaiBotTemperature,
-                messages: chatMessagesPayload
+                messages: chatMessagesHistory[contactName].messages
             });
 
             let answer = possibleAnswers.data.choices[0].message.content.replaceAll('\\n', '').trim();
+            chatMessagesHistory[contactName].messages.push({ role: "assistant", content: answer });
             logger.info('[chatGPT response] %o', answer);
 
             // if for some reason the message contains that magic command 'photo:true' (openaiBotCommandPhoto),
@@ -218,13 +228,13 @@ async function autoReplyUnreadMessages() {
                 await page.waitForTimeout(1000);
             }
         }
-        await page.reload();
-        await page.waitForTimeout(1000);
     } catch (e) {
         logger.error(e);
     }
     finally {
         blockedByCommand = false;
+        await page.reload();
+        await page.waitForTimeout(1000);
     }
 
     return data;
@@ -232,7 +242,6 @@ async function autoReplyUnreadMessages() {
 
 app.get('/login', async function (req, res) {
     config = await redis.load(logger);
-
     browser = await chromium.launchPersistentContext(userDataPathToStoreWhatsappSession,
         { headless: false, permissions: ["clipboard-read", "clipboard-write"] });
 
