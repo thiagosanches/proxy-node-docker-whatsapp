@@ -65,7 +65,7 @@ async function autoReplyUnreadMessages() {
 
     try {
         blocked = true;
-        const isMentioned = false;
+        let isMentioned = false;
         await page.locator('[aria-label="Unread"]>>nth=0', { timeout: 250 }).click();
         await page.waitForTimeout(250);
         const mainDiv = await page.evaluate(async () => document.getElementById("main").innerText);
