@@ -53,7 +53,7 @@ cron.schedule('0 0 0 * * *', async () => {
     totalPhotosTakenByDay = 0;
 });
 
-cron.schedule('0 0 */1 * * *', async () => {
+cron.schedule('0 59 * * * *', async () => {
     logger.info("It's time to refresh the chat history!");
     chatMessagesHistory = {}
 });
