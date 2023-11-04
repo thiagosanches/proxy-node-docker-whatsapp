@@ -24,7 +24,7 @@ const consoleFormat = format.combine(
 const logger = createLogger({ format: consoleFormat, transports: [new transports.Console()] });
 
 let config = {};
-let blockedByCommand = false;
+let blocked = false;
 let totalPhotosTakenByDay = 0;
 let browser, page;
 let chatMessagesHistory = {};
@@ -37,7 +37,7 @@ app.use(bodyParser.json());
 const scrape = require('./mini-apps/scrape');
 
 cron.schedule('30 * * * * *', async () => {
-    if (page && !blockedByCommand) {
+    if (page && !blocked) {
         logger.info("It's time to check for unread messages!");
         await autoReplyUnreadMessages();
     }
@@ -54,14 +54,17 @@ cron.schedule('0 0 0 * * *', async () => {
 });
 
 cron.schedule('0 59 * * * *', async () => {
-    logger.info("It's time to refresh the chat history!");
-    chatMessagesHistory = {}
+    if (!blocked) {
+        logger.info("It's time to refresh the chat history!");
+        chatMessagesHistory = {}
+    }
 });
 
 async function autoReplyUnreadMessages() {
     const data = [];
 
     try {
+        blocked = true;
         await page.locator('[aria-label="Unread"]>>nth=0', { timeout: 250 }).click();
         await page.waitForTimeout(250);
         const mainDiv = await page.evaluate(async () => document.getElementById("main").innerText);
@@ -179,8 +182,6 @@ async function autoReplyUnreadMessages() {
             // it will try to generate an image with DALLE, in order to send it, but only if it's still on the limit.
             if (answer.trim().toLowerCase().includes(config.openaiBotCommandPhoto)) {
                 if (totalPhotosTakenByDay <= config.openaiBotTotalPhotosLimit) {
-                    blockedByCommand = true;
-
                     const activities = config.openaiBotActivities;
                     const photoFinalPrompt = config.openaiBotDallePrompt.replaceAll("##TEXT##",
                         activities[Math.floor(Math.random() * activities.length)]);
@@ -211,7 +212,6 @@ async function autoReplyUnreadMessages() {
 
             // TODO: make it better to organize it.
             if (answer.trim().toLowerCase().includes(config.openaiBotCommandScrape)) {
-                blockedByCommand = true;
                 answer = await scrape.run(logger, answer);
             }
 
@@ -232,7 +232,7 @@ async function autoReplyUnreadMessages() {
         logger.error(e);
     }
     finally {
-        blockedByCommand = false;
+        blocked = false;
         await page.reload();
         await page.waitForTimeout(1000);
     }
