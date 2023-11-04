@@ -1,5 +1,5 @@
 # proxy-node-docker-whatsapp
-This unique application allows users to mimic a bot by responding to messages with ChatGPT when mentioned in a group chat. It also supports sending photos upon request. 
+This unique application allows users to mimic a bot by responding to messages with ChatGPT when mentioned in a group chat. It also supports sending photos upon request.
 
 The application's core technologies include Node.js, Playwright, and Redis. I chose Redis because it allows me to adjust application parameters without the need for deployments. Additionally, I can conveniently modify parameters via a web interface.
 
