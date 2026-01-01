@@ -37,6 +37,8 @@ WORKDIR /home/${username}
 # Application
 RUN mkdir -p /home/$username/app
 RUN mkdir -p /home/$username/app/mini-apps
+RUN mkdir -p /home/$username/app/images
+COPY --chown=guest:guest images/*.jpeg /home/$username/app/images/
 COPY --chown=guest:guest package*.json /home/$username/app/
 COPY --chown=guest:guest main.js /home/$username/app/
 COPY --chown=guest:guest redis.js /home/$username/app/
