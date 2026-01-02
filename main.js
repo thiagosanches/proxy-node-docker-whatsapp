@@ -115,4 +115,4 @@ app.get('/login', async function (req, res) {
     res.end('Browser started read the qr-code, if necessary!');
 });
 
-app.listen(3000);
+app.listen(3002);

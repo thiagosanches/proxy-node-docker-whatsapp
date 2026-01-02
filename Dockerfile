@@ -62,6 +62,6 @@ RUN mkdir -p /tmp/whatsapp_userdata
 RUN chown guest:guest -R /tmp/whatsapp_userdata
 VOLUME [ "/tmp/whatsapp_userdata" ]
 
-EXPOSE 3000 5901
+EXPOSE 3002 5901
 
 ENTRYPOINT [ "/opt/entrypoint.sh" ]

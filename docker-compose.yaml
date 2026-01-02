@@ -14,7 +14,7 @@ services:
     restart: always
     ports:
       - 5901:5901
-      - 3000:3000
+      - 3002:3002
     volumes:
       - userdata:/tmp/whatsapp_userdata
 volumes:
