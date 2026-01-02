@@ -104,7 +104,6 @@ async function autoReply(message) {
             await page.waitForTimeout(5000);
             await page.keyboard.press('Enter');
             await page.waitForTimeout(5000);
-            break;
         }
         logger.info("Auto-reply process completed.");
         await image.close();
