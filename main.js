@@ -27,24 +27,24 @@ const app = express();
 app.use(bodyParser.json());
 
 const goodMorningMessages = [
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/bom-dia-domingo.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/bom-dia-segunda-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/bom-dia-terca-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/bom-dia-quarta-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/bom-dia-quinta-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/bom-dia-sexta-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/bom-dia-sabado.jpeg',
+    'file:///home/guest/app/images/bom-dia-domingo.jpeg',
+    'file:///home/guest/app/images/bom-dia-segunda-feira.jpeg',
+    'file:///home/guest/app/images/bom-dia-terca-feira.jpeg',
+    'file:///home/guest/app/images/bom-dia-quarta-feira.jpeg',
+    'file:///home/guest/app/images/bom-dia-quinta-feira.jpeg',
+    'file:///home/guest/app/images/bom-dia-sexta-feira.jpeg',
+    'file:///home/guest/app/images/bom-dia-sabado.jpeg',
 
 ]
 
 const goodEveningMessages = [
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/boa-noite-domingo.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/boa-noite-segunda-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/boa-noite-terca-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/boa-noite-quarta-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/boa-noite-quinta-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/boa-noite-sexta-feira.jpeg',
-    'file:///home/thiago/r/github/proxy-node-docker-whatsapp/images/boa-noite-sabado.jpeg',
+    'file:///home/guest/app/images/boa-noite-domingo.jpeg',
+    'file:///home/guest/app/images/boa-noite-segunda-feira.jpeg',
+    'file:///home/guest/app/images/boa-noite-terca-feira.jpeg',
+    'file:///home/guest/app/images/boa-noite-quarta-feira.jpeg',
+    'file:///home/guest/app/images/boa-noite-quinta-feira.jpeg',
+    'file:///home/guest/app/images/boa-noite-sexta-feira.jpeg',
+    'file:///home/guest/app/images/boa-noite-sabado.jpeg',
 ]
 
 cron.schedule('0 8 * * *', async () => {
@@ -54,7 +54,7 @@ cron.schedule('0 8 * * *', async () => {
     }
 });
 
-cron.schedule('0 18 * * * *', async () => {
+cron.schedule('0 18 * * *', async () => {
     if (page) {
         logger.info("[good-evening] It's time to auto-reply!");
         await autoReply(goodEveningMessages[new Date().getDay()]);
