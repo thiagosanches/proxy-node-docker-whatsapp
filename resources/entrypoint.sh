@@ -12,10 +12,9 @@ PATH=$PATH:"/home/$APP_USER/.nvm/versions/node/v22.21.1/bin"
 # but my node application needs to interact with sikulixide that lives on the same container and has a X session.
 cd ~/app && npx playwright install
 DISPLAY=:1 node ~/app/main.js &
-vncserver -geometry 1024x768 :1
+vncserver -geometry 1280x1024 :1
 
 while true
 do
-    echo "Running VNC and node application..."
     sleep 60
 done

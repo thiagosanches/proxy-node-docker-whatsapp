@@ -19,5 +19,6 @@ services:
       - 3002:3002
     volumes:
       - userdata:/tmp/whatsapp_userdata
+      - ./main.js:/home/guest/app/main.js
 volumes:
   userdata:
