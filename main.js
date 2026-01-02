@@ -121,4 +121,26 @@ app.get('/login', async function (req, res) {
     res.end('Browser started read the qr-code, if necessary!');
 });
 
+app.get('/triggergoodmorning', async function (req, res) {
+    browser = await chromium.launchPersistentContext(userDataPathToStoreWhatsappSession,
+        { headless: false, permissions: ["clipboard-read", "clipboard-write"] });
+
+    page = await browser.newPage();
+    await page.goto('https://web.whatsapp.com/');
+
+    await autoReply(goodMorningMessages[new Date().getDay()]);
+    res.end('Good morning messages sent!');
+});
+
+app.get('/triggergoodevening', async function (req, res) {
+    browser = await chromium.launchPersistentContext(userDataPathToStoreWhatsappSession,
+        { headless: false, permissions: ["clipboard-read", "clipboard-write"] });
+
+    page = await browser.newPage();
+    await page.goto('https://web.whatsapp.com/');
+
+    await autoReply(goodEveningMessages[new Date().getDay()]);
+    res.end('Good evening messages sent!');
+});
+
 app.listen(3002);
