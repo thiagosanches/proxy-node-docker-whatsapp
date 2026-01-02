@@ -11,6 +11,8 @@ services:
       - APP_USER=guest
       - REDIS_URL=redis://192.168.0.7:6379
       - TZ=America/Sao_Paulo
+      - GOOD_MORNING_CRON=0 8 * * *
+      - GOOD_EVENING_CRON=0 18 * * *
     restart: always
     ports:
       - 5901:5901

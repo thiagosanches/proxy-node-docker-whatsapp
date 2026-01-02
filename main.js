@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const cron = require('node-cron');
 const { chromium } = require('playwright');
 const { createLogger, format, transports } = require('winston');
+const GOOD_MORNING_CRON = process.env.GOOD_MORNING_CRON || '0 8 * * *';
+const GOOD_EVENING_CRON = process.env.GOOD_EVENING_CRON || '0 18 * * *';
 
 const timezoned = () => { return new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }); };
 const consoleFormat = format.combine(
@@ -47,14 +49,14 @@ const goodEveningMessages = [
     'file:///home/guest/app/images/boa-noite-sabado.jpeg',
 ]
 
-cron.schedule('0 8 * * *', async () => {
+cron.schedule(GOOD_MORNING_CRON, async () => {
     if (page) {
         logger.info("[good-morning] It's time to auto-reply!");
         await autoReply(goodMorningMessages[new Date().getDay()]);
     }
 });
 
-cron.schedule('0 18 * * *', async () => {
+cron.schedule(GOOD_EVENING_CRON, async () => {
     if (page) {
         logger.info("[good-evening] It's time to auto-reply!");
         await autoReply(goodEveningMessages[new Date().getDay()]);
@@ -83,24 +85,29 @@ async function autoReply(message) {
             return list;
         });
 
-        // For every recent contact, click on it to send a message.
+        logger.info(`Total contacts found: ${elements.length}`);
+        logger.info(`Found contacts: ${elements.map(e => e.title).join(', ')}`);
+
+        const image = await browser.newPage();
+        await image.goto(message);
+        await image.keyboard.press("Control+C");
+        await page.bringToFront();
+
         for (const element of elements) {
-            logger.info(`Clicking on contact: ${element.title}`);
+            logger.info(`Clicking on contact: '${element.title}'`);
 
             const contact = await page.$(`span[title="${element.title}"]`);
             contact.click()
             await page.waitForTimeout(2000);
 
-            const image = await browser.newPage();
-            await image.goto(message);
-            await image.keyboard.press("Control+C");
-            await page.bringToFront();
             await page.keyboard.press("Control+V");
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(5000);
             await page.keyboard.press('Enter');
-            await page.waitForTimeout(500);
-            await image.close();
+            await page.waitForTimeout(5000);
+            break;
         }
+        logger.info("Auto-reply process completed.");
+        await image.close();
     } catch (e) {
         logger.error(e);
     }
